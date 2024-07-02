@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <link rel='stylesheet' type='text/css' href='https://netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css'>
+  <style>
+    body {
+      background: #eee !important;
+    }
+
+    .wrapper {
+      margin-top: 80px;
+      margin-bottom: 80px;
+    }
+
+    .form-signin {
+      max-width: 380px;
+      padding: 15px 35px 45px;
+      margin: 0 auto;
+      background-color: #fff;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .form-signin .form-signin-heading,
+    .form-signin .checkbox {
+      margin-bottom: 30px;
+    }
+
+    .form-signin .checkbox {
+      font-weight: normal;
+    }
+
+    .form-signin .form-control {
+      position: relative;
+      font-size: 16px;
+      height: auto;
+      padding: 10px;
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+    }
+
+    .form-signin .form-control:focus {
+      z-index: 2;
+    }
+
+    .form-signin input[type=text] {
+      margin-bottom: -1px;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    .form-signin input[type=password] {
+      margin-bottom: 20px;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+  </style>
+  <meta charset='UTF-8'>
+  <title></title>
+</head>
+
+<body>
+  <div class="wrapper">
+    <form id='theForm' class="form-signin">
+      <h2 class="form-signin-heading">Make Payment</h2>
+      <input id='email' type="text" class="form-control" name="username" placeholder="Email Address" required=""
+        autofocus="" />
+      <input id='amount' style='margin-top: 2rem' type="number" class="form-control" name="password"
+        placeholder="100 AED" required="" />
+
+      <input id='firstName' type="text" class="form-control" name="username" placeholder="First name" required=""
+        autofocus="" />
+
+      <input id='lastName' type="text" class="form-control" name="username" placeholder="Last name" required=""
+        autofocus="" />
+
+      <input id='address1' type="text" class="form-control" name="username" placeholder="Address" required=""
+        autofocus="" />
+
+      <input id='city' type="text" class="form-control" name="username" placeholder="City" required="" autofocus="" />
+      <select required='' style='margin-top: 1rem' class="form-control" id='countryCode'>
+
+      </select>
+
+      <button id='send' style='margin-top: 2rem' class="btn btn-lg btn-primary btn-block" type="submit">Get Payment
+        Link</button>
+      <div id='link-div'></div>
+    </form>
+  </div>
+</body>
+<script>
+  var button = document.getElementById('send');
+  document.getElementById('theForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    document.getElementById('link-div').innerHTML = '';
+    button.disabled = true;
+    button.innerText = 'Requesting a new link ...';
+
+    fetch('http://ec2-3-29-2-252.me-central-1.compute.amazonaws.com:5000/api/order/processOrderAndSendEmail', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: document.getElementById('email').value,
+        quantity: document.getElementById('amount').value,
+        billingAddress: {
+          firstName: document.getElementById('firstName').value,
+          lastName: document.getElementById('lastName').value,
+          address1: document.getElementById('address1').value,
+          city: document.getElementById('city').value,
+          countryCode: document.getElementById('countryCode').value
+        }
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        document.getElementById('link-div').innerHTML = `
+          <h5>Your payment link is ready and mailed to the recipient</h5>
+          <a href='${data.data.redirectionUrl}'>Payment Link</a>
+        `;
+      } else {
+        alert('Error: ' + data.message);
+      }
+      button.innerText = 'Get Payment Link';
+      button.disabled = false;
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      button.innerText = 'Get Payment Link';
+      button.disabled = false;
+    });
+  });
+
+  const countryCodes = {
+    "AE": "United Arab Emirates (the)"
+  };
+  let innerHTML = '<option value=""> Please select a country </option>';
+  Object.keys(countryCodes).forEach(key => innerHTML += `
+    <option value='${key}'> ${countryCodes[key]} </option>
+  `);
+  document.getElementById('countryCode').innerHTML = innerHTML;
+</script>
+
+</html>
