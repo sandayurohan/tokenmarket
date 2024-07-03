@@ -97,7 +97,7 @@
     button.disabled = true;
     button.innerText = 'Requesting a new link ...';
 
-    fetch('https://sibilsystems.com/api/order/processOrderAndSendEmail', {
+    fetch('https://sibilsystems.com/backend/api/order/processOrderAndSendEmail', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
